@@ -1,16 +1,30 @@
 import React, { useRef, useState } from 'react';
-import { Video, VideoOff } from 'lucide-react';
+import { Video, Mic, Circle, StopCircle, AlertCircle } from 'lucide-react';
 import { Language, indianLanguages } from '../types/languages';
 import { LanguageSelector } from './LanguageSelector';
 import { TranscriptionDisplay } from './TranscriptionDisplay';
+import { useVideoRecorder } from '../hooks/useVideoRecorder';
+import { Button } from './ui/Button';
 
 export function VideoRecorder() {
-  const [isRecording, setIsRecording] = useState(false);
+  // const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(indianLanguages[0]);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // const videoRef = useRef<HTMLVideoElement>(null);
   const recognitionRef = useRef<null | (typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition)>(null);
+
+  const {
+    videoRef,
+    previewRefUtils,
+    recordedChunksUtils,
+    downloadAudioUtils,
+    downloadVideoUtils,
+    stopRecordingUtils,
+    startRecordingUtils,
+    isRecording,
+    changeIsRecording,
+  } = useVideoRecorder();
 
   const startRecording = async () => {
     try {
@@ -68,7 +82,7 @@ export function VideoRecorder() {
       recognitionRef.current = recognition;
       recorder.start();
       setMediaRecorder(recorder);
-      setIsRecording(true);
+      changeIsRecording(true);
     } catch (err) {
       console.error('Error accessing media devices:', err);
       setTranscript('Error: Could not access camera or microphone. Please ensure permissions are granted.');
@@ -118,7 +132,7 @@ export function VideoRecorder() {
       recognitionRef.current.stop();
     }
   
-    setIsRecording(false);
+    changeIsRecording(false);
   };
   
   
@@ -143,37 +157,68 @@ export function VideoRecorder() {
             />
           </div>
           
-          <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden mb-6">
-            <video
-              ref={videoRef}
-              className="w-full h-full"
-              autoPlay
-              playsInline
-              muted={isRecording}
-            />
+          <div>
+            <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden mb-6">
+              <video
+                ref={videoRef}
+                className="w-full h-full"
+                autoPlay
+                playsInline
+                muted={isRecording}
+              />
+            </div>
+            
+
+            <div className="flex justify-center gap-4 mb-6">
+              <button
+                onClick={isRecording 
+                  ? () => { stopRecordingUtils(); stopRecording(); } 
+                  : () => { startRecordingUtils(); startRecording(); }}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium ${
+                  isRecording
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+              >
+
+                {isRecording ? (
+                  <StopCircle className="w-5 h-5" />
+                ) : (              
+                  <Circle className="w-5 h-5" />      
+                  )}
+                {isRecording ? 'Stop Recording' : 'Start Recording'}
+              </button>
+            </div>
           </div>
 
-          <div className="flex justify-center gap-4 mb-6">
-            <button
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium ${
-                isRecording
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              {isRecording ? (
-                <>
-                  <VideoOff className="w-5 h-5" />
-                  Stop Recording
-                </>
-              ) : (
-                <>
-                  <Video className="w-5 h-5" />
-                  Start Recording
-                </>
-              )}
-            </button>
+          <div>
+            <div className="relative">
+              <h2 className="text-lg font-semibold mb-2">Preview Recording</h2>
+              <video
+                ref={previewRefUtils}
+                className="w-full aspect-video bg-gray-900 rounded-lg shadow-lg"
+                playsInline
+                onLoadedMetadata={() => {
+                  if (previewRefUtils.current) {
+                    previewRefUtils.current.controls = true; 
+                    previewRefUtils.current.play(); 
+                  }
+                }}
+              />
+            </div>
+            
+            {recordedChunksUtils.length > 0 && (
+              <div className="flex justify-center gap-4 mt-5 mb-6">
+                <Button onClick={downloadVideoUtils} variant="secondary">
+                  <Video className="w-4 h-4 mr-2" />
+                  Download Video
+                </Button>
+                <Button onClick={downloadAudioUtils} variant="secondary">
+                  <Mic className="w-4 h-4 mr-2" />
+                  Download Audio
+                </Button>
+              </div>
+            )}
           </div>
 
           <TranscriptionDisplay
