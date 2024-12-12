@@ -12,6 +12,7 @@ export function VideoRecorder() {
   const [totalTranscript, setTotalTranscript] = useState('');
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(indianLanguages[0]);
+  const [jsonResponse, setJsonResponse] = useState(null);
   // const videoRef = useRef<HTMLVideoElement>(null);
   const recognitionRef = useRef<null | (typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition)>(null);
 
@@ -251,6 +252,13 @@ export function VideoRecorder() {
           </div>
         </div>
       </div>
+      {jsonResponse && (
+    <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
+        <h3>Analysis Result:</h3>
+        <pre>{JSON.stringify(jsonResponse, null, 2)}</pre>
+    </div>
+)}
+
 
       {/* <div>
         <p className="text-gray-600">{totalTranscript}</p>
