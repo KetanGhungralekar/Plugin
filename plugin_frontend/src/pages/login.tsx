@@ -19,8 +19,8 @@ const LoginPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (isSigningIn) {
+    console.log(isSigningIn)
+    if (!isSigningIn) {
       try {
         signup(username, username, password, 'ROLE_USER');
         console.log('Signing up with:', username, password);
