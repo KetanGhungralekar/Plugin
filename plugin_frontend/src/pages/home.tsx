@@ -5,7 +5,7 @@ const Home: React.FC = () => {
     <div className="bg-gray-100">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Video Transcription & Analysis</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Communication Assessment Platform </h1>
         </div>
       </header>
 
@@ -15,7 +15,7 @@ const Home: React.FC = () => {
             <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
               <div>
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                  Accurate Transcripts in 20+ Indian Languages
+                  Accurate Transcripts which support Indian accents in multiple languages
                 </h2>
                 <p className="mt-3 text-lg text-gray-500">
                   Our AI-powered platform transcribes your live videos in real-time, with detailed speech analysis reports to help you better understand your audience.

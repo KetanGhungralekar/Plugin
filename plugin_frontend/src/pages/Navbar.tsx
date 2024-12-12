@@ -11,16 +11,22 @@ const Navbar = () => {
         </div>
         <div>
           <a
-            href="/about"
+            href="/login"
             className="mx-4 hover:bg-gray-800 rounded-full px-4 py-2 transition-colors"
           >
-            About
+            Login
           </a>
           <a
-            href="/contact"
+            href="/record-video"
             className="mx-4 hover:bg-gray-800 rounded-full px-4 py-2 transition-colors"
           >
-            Contact
+            Recorded Videos
+          </a>
+          <a
+            href="/decode-video"
+            className="mx-4 hover:bg-gray-800 rounded-full px-4 py-2 transition-colors"
+          >
+            Stored Videos
           </a>
         </div>
       </div>

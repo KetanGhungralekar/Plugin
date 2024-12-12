@@ -211,6 +211,12 @@ export function VideoRecorder() {
             </div>
           </div>
 
+          <TranscriptionDisplay
+            isRecording={isRecording}
+            transcript={transcript}
+            selectedLanguage={selectedLanguage}
+          />
+
           <div>
             <div className="relative">
               <h2 className="text-lg font-semibold mb-2">Preview Recording</h2>
@@ -243,12 +249,6 @@ export function VideoRecorder() {
               </div>
             )}
           </div>
-
-          <TranscriptionDisplay
-            isRecording={isRecording}
-            transcript={transcript}
-            selectedLanguage={selectedLanguage}
-          />
         </div>
       </div>
 
