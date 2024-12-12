@@ -128,26 +128,17 @@ export function useVideoRecorder(): UseVideoRecorderResult {
         if (recordedSize === finalSize) {
           setRecordedChunksUtils(chunks);
           setRecordedBlob(blob);
-  
-          const base64String = await convertBlobToBase64(blob);
-          const base64Data = base64String.replace(/^data:.*;base64,/, "");
-          const cleanedBase64Data = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
 
-          await uploadVideo({ 
-            title: 'Video Recording',
-            description: 'This is a video recording',
-            videoData: cleanedBase64Data 
+          // Convert the Blob into a File object
+          const videoFile = new File([blob], "recorded_video.webm", { type: "video/webm" });
+
+          await uploadVideo({
+            title: "Video Recording",
+            description: "This is a video recording",
+            role: "ROLE_USER", 
+            uploadedBy: "user123", 
+            videoFile: videoFile,
           });
-
-          // console.log("Cleaned Base64 Data:", cleanedBase64Data);
-
-          // const decodedData = atob(cleanedBase64Data);
-          // console.log("Decoded Data:", decodedData);
-
-          // const mimeType = selectedMimeType;
-          // const reEncodedBase64 = convertDecodedToBase64(decodedData, mimeType);
-
-          // console.log("Re-Encoded Base64:", reEncodedBase64);
 
           if (previewRefUtils.current) {
             const url = URL.createObjectURL(blob);

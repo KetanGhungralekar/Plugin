@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Base64Decode from "../components/Base64Decode";
 import { useAuth } from "../context";
 
 interface Video {
   title: string;
   description: string;
-  videoData: string; // Base64 encoded video data
+  videoFile: string | null; // Base64 encoded video data or null
+  role: string | null;
+  uploadedBy: string | null;
+  videoFilePath: string | null;
 }
 
 const AllVideos: React.FC = () => {
@@ -25,8 +27,8 @@ const AllVideos: React.FC = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        const videoData: Video[] = response.data.videos;
+        
+        const videoData: Video[] = response.data.videos || [];
         setVideos(videoData);
       } catch (err: any) {
         console.error("Error fetching videos:", err.response?.data || err.message);
@@ -77,9 +79,19 @@ const AllVideos: React.FC = () => {
             <div className="p-4">
               <h3 className="text-lg font-medium mb-2">{video.title}</h3>
               <p className="text-gray-600 mb-4 line-clamp-2">{video.description}</p>
-              <div className="flex justify-center align-content-center">
-                <Base64Decode base64String={video.videoData} />
-              </div>
+
+              {/* If videoFilePath exists, display the video player */}
+              {video.videoFilePath ? (
+                <video
+                  className="w-full h-auto rounded-md"
+                  controls
+                  src={video.videoFilePath}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="text-gray-500">No video available.</div>
+              )}
             </div>
           </div>
         ))}

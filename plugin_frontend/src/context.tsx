@@ -9,15 +9,21 @@ interface User {
   token: string;
 }
 
-interface VideoRequest {
-  title: string;
-  description: string;
-  videoData: string; // Base64 encoded video data
-}
+type VideoRequest = {
+    title: string;
+    description: string;
+    role: string; // Replace with your USER_ROLE type if defined
+    uploadedBy: string;
+    videoFile: File; // File object for uploading
+};
+  
+  // Define the VideoResponse type
+type VideoResponse = {
+    title: string;
+    description: string;
+    videoFilePath: string;
+};
 
-interface VideoResponse extends VideoRequest {
-  uploadedBy: User;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -35,7 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>('eyJhbGciOiJIUzM4NCJ9.eyJpYXQiOjE3MzM5NDY2OTEsImV4cCI6MTczNDAzMzA5MSwiYXV0aG9yaXRpZXMiOiJST0xFX1VTRVIiLCJlbWFpbCI6InBjYXdkaHJ5MTJAZ21haWwuY29tIn0._FxC8XdF-IKOjQ-oHj3dTMdPyztnUiU2C5Z-gZf2Kv8PeXWBnm-KU-mM5FivFz2y');
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
 
   // Signup function
   const signup = async (email: string, username: string, password: string, role: string) => {
@@ -56,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
       });
       setToken(token);
+      localStorage.setItem("token", token);
       console.log("Signup successful:", data);
     } catch (error) {
       console.error("Signup error:", error.response?.data || error.message);
@@ -80,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
       });
       setToken(token);
+      localStorage.setItem("token", token);
       console.log("Login successful:", data);
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
@@ -93,46 +101,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
   };
 
-  // Upload video function
-  const uploadVideo = async (videoRequest: VideoRequest) => {
-    try {
-      if (!token) throw new Error("User is not authenticated.");
-      await axios.post("http://localhost:8080/videos", videoRequest, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("Video uploaded successfully!");
-    } catch (error) {
-      console.error("Upload video error:", error.response?.data || error.message);
-      throw error;
-    }
-  };
+  const API_BASE_URL = "http://localhost:8080/videos";
 
-  // Get videos by user function
-  const getVideosByUser = async (): Promise<VideoResponse[]> => {
-    try {
-      if (!token) throw new Error("User is not authenticated.");
-      const response = await axios.get("http://localhost:8080/videos/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data: VideoResponse[] = response.data.videos;
-      console.log("Fetched videos by user:", data);
-      return data;
-    } catch (error) {
-      console.error("Error fetching videos:", error.response?.data || error.message);
-      throw error;
-    }
-  };
+    const uploadVideo = async (videoRequest: VideoRequest) => {
+        try {
+        if (!token) throw new Error("User is not authenticated.");
+    
+        // Create FormData object for multipart file upload
+        const formData = new FormData();
+        formData.append("title", videoRequest.title);
+        formData.append("description", videoRequest.description);
+        formData.append("role", videoRequest.role);
+        formData.append("uploadedBy", videoRequest.uploadedBy);
+        formData.append("videoFile", videoRequest.videoFile);
+    
+        await axios.post(`${API_BASE_URL}/upload`, formData, {
+            headers: {
+            Authorization: `Bearer ${token}`,
+            },
+        });
+    
+        console.log("Video uploaded successfully!");
+        } catch (error: any) {
+        console.error("Upload video error:", error.response?.data || error.message);
+        throw error;
+        }
+    };
+  
+    
 
-  return (
-    <AuthContext.Provider value={{ user, token, signup, signin, logout, uploadVideo, getVideosByUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    // Get videos by user function
+    const getVideosByUser = async (): Promise<VideoResponse[]> => {
+        try {
+          if (!token) throw new Error("User is not authenticated.");
+      
+          const response = await axios.get(`${API_BASE_URL}/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+      
+          const data: VideoResponse[] = response.data.videos;
+          console.log("Fetched videos by user:", data);
+          return data;
+        } 
+        catch (error: any) {
+          console.error("Error fetching videos:", error.response?.data || error.message);
+          throw error;
+        }
+    };
+
+    return (
+        <AuthContext.Provider value={{ user, token, signup, signin, logout, uploadVideo, getVideosByUser }}>
+        {children}
+        </AuthContext.Provider>
+    );
+    };
 
 // Hook to use the AuthContext
 export const useAuth = () => {

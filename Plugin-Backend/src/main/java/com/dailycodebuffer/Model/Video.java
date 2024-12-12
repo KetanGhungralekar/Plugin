@@ -13,14 +13,11 @@ public class Video {
     private String title;
     private String description;
 
-    @Lob
-    private byte[] videoData;
-
+    private String fileName;
     private String fileType;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User uploadedBy;
-
-    private boolean isPublic;
+    public String videoUrl;
 }
