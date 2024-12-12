@@ -30,6 +30,24 @@ export function useVideoRecorder(): UseVideoRecorderResult {
   const [error, setError] = useState<string | null>(null);
   const [isPreviewPlayingUtils, setIsPreviewPlayingUtils] = useState(false);
 
+  const convertBlobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(blob);
+    });
+  };  
+
+  const convertDecodedToBase64 = (decodedData: string, mimeType: string): string => {
+    // Encode the decoded binary string back to Base64
+    const base64Encoded = btoa(decodedData);
+
+    const base64String = `data:${mimeType};base64,${base64Encoded}`;
+  
+    return base64String;
+  };
+
   const cleanup = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -99,21 +117,37 @@ export function useVideoRecorder(): UseVideoRecorderResult {
         }
       };
   
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: selectedMimeType });
-        const finalSize = blob.size; // Get the size of the final combined Blob
+        const finalSize = blob.size;
   
-        // Ensure that the size of the chunks matches the size of the final Blob before playing the preview
         if (recordedSize === finalSize) {
           setRecordedChunksUtils(chunks);
           setRecordedBlob(blob);
   
+          const base64String = await convertBlobToBase64(blob);
+          console.log('Base64 String:', base64String);
+
+          const base64Data = base64String.replace(/^data:.*;base64,/, "");
+
+          const cleanedBase64Data = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
+
+          console.log("Cleaned Base64 Data:", cleanedBase64Data);
+
+          const decodedData = atob(cleanedBase64Data);
+          console.log("Decoded Data:", decodedData);
+
+          const mimeType = selectedMimeType;
+          const reEncodedBase64 = convertDecodedToBase64(decodedData, mimeType);
+
+          console.log("Re-Encoded Base64:", reEncodedBase64);
+
           if (previewRefUtils.current) {
             const url = URL.createObjectURL(blob);
             previewRefUtils.current.src = url;
             previewRefUtils.current.onloadedmetadata = () => {
               if (previewRefUtils.current) {
-                previewRefUtils.current.play(); // Automatically start the preview once the metadata is loaded
+                previewRefUtils.current.play();
                 URL.revokeObjectURL(url);
               }
             };
@@ -184,6 +218,26 @@ export function useVideoRecorder(): UseVideoRecorderResult {
   const changeIsRecording = (isRecording: boolean) => {
     setisRecording(isRecording);
   };
+
+  const convertChunksToBase64Utils = useCallback(async (): Promise<string | null> => {
+    if (!recordedBlob) return null;
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64String = reader.result?.toString();
+        resolve(base64String || null);
+      };
+
+      reader.onerror = (error) => {
+        setError('Error converting to Base64: ' + error.message);
+        reject(error);
+      };
+
+      reader.readAsDataURL(recordedBlob);
+    });
+  }, [recordedBlob]);
 
   return {
     videoRef,
