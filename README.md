@@ -85,78 +85,25 @@ temp_audio/
 3. The system will transcribe the speech in real-time and provide detailed analysis and feedback.
 
 ## Cloud Storage
-Videos are stored in the cloud using Cloudinary. This allows the platform to handle videos of any size efficiently. The backend is configured to upload videos to Cloudinary and store the URLs in the database.
-
-### Cloudinary Configuration
-The Cloudinary configuration is set up in the backend in the file [Plugin/Plugin-Backend/src/main/java/com/dailycodebuffer/Config/CloudinaryConfig.java](Plugin/Plugin-Backend/src/main/java/com/dailycodebuffer/Config/CloudinaryConfig.java).
-
-```java
-package com.dailycodebuffer.Config;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class CloudinaryConfig {
-
-    @Bean
-    public Cloudinary cloudinary() {
-        return new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", "ds8zfoutr",
-                "api_key", "138219315573231",
-                "api_secret", "UWfkikc4r4mdFpUF_3z_himq8dk"
-        ));
-    }
-}
-```
+**Videos are stored in the cloud using Cloudinary.** This allows the platform to handle videos of any size efficiently.
 
 ## Authentication
-Authentication is handled using JWT (JSON Web Tokens). The backend generates a JWT upon successful login, which is then used to authenticate subsequent requests.
+**Authentication is handled using JWT (JSON Web Tokens).** The backend generates a JWT upon successful login, which is then used to authenticate subsequent requests.
 
-### JWT Configuration
-The JWT configuration is set up in the backend in the file [Plugin/Plugin-Backend/src/main/java/com/dailycodebuffer/Config/JwtProvider.java](Plugin/Plugin-Backend/src/main/java/com/dailycodebuffer/Config/JwtProvider.java).
+## Multiple Backends
+**The platform uses multiple backends to handle different functionalities:**
 
-```java
-package com.dailycodebuffer.Config;
+### Python Backend
+- **Grammar Analysis**: The Python backend is responsible for analyzing the grammar of the transcribed speech. It uses various NLP (Natural Language Processing) techniques to identify grammatical errors and provide suggestions for improvement.
+- **Files**:
+  - `Grammer_correcter.py`
+  - `New_Grammar_Corrector.py`
 
-import java.util.Collection;
-import java.util.Date;
-import javax.crypto.SecretKey;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-
-@Component
-public class JwtProvider {
-    private SecretKey secretKey = Keys.hmacShaKeyFor(JwtConstant.SECRET_KEY.getBytes());
-
-    public String generateToken(Authentication auth) {
-        Collection<? extends GrantedAuthority> grantedAuthorities = auth.getAuthorities();
-        String roles = populateAuthorities(grantedAuthorities);
-        return Jwts.builder()
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + 86400000))
-                .claim("authorities", roles)
-                .claim("email", auth.getName())
-                .signWith(secretKey)
-                .compact();
-    }
-
-    public String GetEmailfromJwt(String jwt) {
-        jwt = jwt.substring(7);
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(jwt).getBody();
-        return String.valueOf(claims.get("email"));
-    }
-
-    private String populateAuthorities(Collection<? extends GrantedAuthority> grantedAuthorities) {
-        // Implementation here
-    }
-}
-```
+### Whisper Backend
+- **Speech Transcription**: The Whisper backend is used for the transcription of video. It processes the audio from the recorded video and converts it into text with high accuracy.
+- **Files**:
+  - `Transcriber.py`
+  - `speechAnalysis.py`
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
