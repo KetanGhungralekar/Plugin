@@ -98,17 +98,11 @@ temp_audio/
 ## Multiple Backends
 **The platform uses multiple backends to handle different functionalities:**
 
-### Python Backend
-- **Grammar Analysis**: The Python backend is responsible for analyzing the grammar of the transcribed speech. It uses various NLP (Natural Language Processing) techniques to identify grammatical errors and provide suggestions for improvement.
-- **Files**:
-  - `Grammer_correcter.py`
-  - `New_Grammar_Corrector.py`
+### Spring Boot Backend
+- **Main Application Logic**: The Spring Boot backend handles the main application logic, including user authentication, video management, and integration with cloud storage.
 
-### Whisper Backend
-- **Speech Transcription**: The Whisper backend is used for the transcription of video. It processes the audio from the recorded video and converts it into text with high accuracy.
-- **Files**:
-  - `Transcriber.py`
-  - `speechAnalysis.py`
+### Python Backend
+- **Grammar Analysis and Speech Transcription**: The Python backend is responsible for both analyzing the grammar of the transcribed speech and transcribing the video. It uses various NLP (Natural Language Processing) techniques to identify grammatical errors and provide suggestions for improvement, as well as processing the audio from the recorded video and converting it into text with high accuracy.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
