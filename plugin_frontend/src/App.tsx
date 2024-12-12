@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { VideoRecorder } from '../src/components/VideoRecorder';
 import AllVideos from '../src/pages/AllVideos';
 import { AuthProvider } from './context'; // Import AuthProvider
+import LoginPage from '../src/pages/login';
+import Navbar from '../src/pages/Navbar';
+import LandingPage from '../src/pages/home';
 
 function App() {
   return (
@@ -10,14 +13,11 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-100">
           {/* Navigation Links (optional, for routing) */}
-          <nav className="p-4 bg-gray-800 text-white">
-            <Link to="/" className="mr-4">Home</Link>
-            <Link to="/record-video" className="mr-4">Record Video</Link>
-            <Link to="/decode-video">Decode Video</Link>
-          </nav>
+          <Navbar />
 
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/record-video" element={<VideoRecorder />} />
             <Route path="/decode-video" element={<AllVideos />} />
           </Routes>

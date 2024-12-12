@@ -42,10 +42,9 @@ const Base64Decode: React.FC<Base64DecodeProps> = ({ base64String }) => {
   return (
     <div>
       {videoUrl ? (
-        <video
+        <video 
           src={videoUrl}
           controls
-          width={400}
           height={300}
           className="rounded-md shadow-md"
         />

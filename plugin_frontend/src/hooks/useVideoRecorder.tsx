@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { createMediaDownload } from '../utils/mediaUtils';
 import { extractAudioFromBlob } from '../utils/mediaUtils';
 import { convertToWAV } from '../utils/audioUtils';
+import { useAuth } from '../context';
 
 interface UseVideoRecorderResult {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -30,6 +31,8 @@ export function useVideoRecorder(): UseVideoRecorderResult {
   const [error, setError] = useState<string | null>(null);
   const [isPreviewPlayingUtils, setIsPreviewPlayingUtils] = useState(false);
 
+  const { uploadVideo } = useAuth();
+
   const convertBlobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -38,6 +41,7 @@ export function useVideoRecorder(): UseVideoRecorderResult {
       reader.readAsDataURL(blob);
     });
   };  
+  
 
   const convertDecodedToBase64 = (decodedData: string, mimeType: string): string => {
     // Encode the decoded binary string back to Base64
@@ -126,21 +130,24 @@ export function useVideoRecorder(): UseVideoRecorderResult {
           setRecordedBlob(blob);
   
           const base64String = await convertBlobToBase64(blob);
-          console.log('Base64 String:', base64String);
-
           const base64Data = base64String.replace(/^data:.*;base64,/, "");
-
           const cleanedBase64Data = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
 
-          console.log("Cleaned Base64 Data:", cleanedBase64Data);
+          await uploadVideo({ 
+            title: 'Video Recording',
+            description: 'This is a video recording',
+            videoData: cleanedBase64Data 
+          });
 
-          const decodedData = atob(cleanedBase64Data);
-          console.log("Decoded Data:", decodedData);
+          // console.log("Cleaned Base64 Data:", cleanedBase64Data);
 
-          const mimeType = selectedMimeType;
-          const reEncodedBase64 = convertDecodedToBase64(decodedData, mimeType);
+          // const decodedData = atob(cleanedBase64Data);
+          // console.log("Decoded Data:", decodedData);
 
-          console.log("Re-Encoded Base64:", reEncodedBase64);
+          // const mimeType = selectedMimeType;
+          // const reEncodedBase64 = convertDecodedToBase64(decodedData, mimeType);
+
+          // console.log("Re-Encoded Base64:", reEncodedBase64);
 
           if (previewRefUtils.current) {
             const url = URL.createObjectURL(blob);
