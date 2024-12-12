@@ -25,6 +25,7 @@ export function VideoRecorder() {
     startRecordingUtils,
     isRecording,
     changeIsRecording,
+    downloadSpeechAnalysisUtils,
   } = useVideoRecorder();
 
   const startRecording = async () => {
@@ -236,6 +237,9 @@ export function VideoRecorder() {
                   <Mic className="w-4 h-4 mr-2" />
                   Download Audio
                 </Button>
+                <Button onClick={downloadSpeechAnalysisUtils} variant="secondary">
+                  Download Speech Analysis 
+                </Button>
               </div>
             )}
           </div>
@@ -248,9 +252,9 @@ export function VideoRecorder() {
         </div>
       </div>
 
-      <div>
+      {/* <div>
         <p className="text-gray-600">{totalTranscript}</p>
-      </div>
+      </div> */}
     </div>
   );
 }

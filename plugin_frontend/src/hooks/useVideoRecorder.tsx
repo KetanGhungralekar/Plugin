@@ -30,6 +30,7 @@ export function useVideoRecorder(): UseVideoRecorderResult {
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPreviewPlayingUtils, setIsPreviewPlayingUtils] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<boolean>(false);
 
   const { uploadVideo } = useAuth();
 
@@ -74,6 +75,7 @@ export function useVideoRecorder(): UseVideoRecorderResult {
 
   const startRecordingUtils = useCallback(async () => {
     try {
+      setAnalysisResults(true);
       cleanup();
       setError(null);
       setRecordedBlob(null);
@@ -162,9 +164,8 @@ export function useVideoRecorder(): UseVideoRecorderResult {
         setError(errorMessage);
         cleanup();
       };
-  
-      // Start recording with a slice time (e.g., 100ms, so data is collected more regularly)
-      mediaRecorder.start(100); // Record in chunks every 100ms
+
+      mediaRecorder.start(100); 
   
       setisRecording(true);
     } catch (error) {
@@ -173,13 +174,51 @@ export function useVideoRecorder(): UseVideoRecorderResult {
       cleanup();
     }
   }, [cleanup]);
-  
-  
 
-  const stopRecordingUtils = useCallback(() => {
+  // useEffect(() => {
+  //   const analyzeAudio = async () => {
+  //     if (recordedBlob) {
+  //       try {
+  //         const audioBuffer = await extractAudioFromBlob(recordedBlob);
+  //         const audioBlob = await convertToWAV(audioBuffer);
+  
+  //         const formData = new FormData();
+  //         formData.append('file', new Blob([audioBlob], { type: 'audio/wav' }), 'recorded-audio.wav');
+  
+  //         console.log("YOU ARE HERE");
+  //         const response = await fetch('http://localhost:5000/analyze', {
+  //           method: 'POST',
+  //           body: formData,
+  //         });
+  
+  //         if (!response.ok) {
+  //           throw new Error('Audio analysis failed');
+  //         }
+  
+  //         const data = await response.json();
+  
+  //         console.log('Analysis Results:', data);
+  
+  //         const pdfReportLink = `../../${data.pdf_report}`;
+  //         window.open(pdfReportLink, '_blank');
+          
+  //       } catch (error) {
+  //         setError('Error processing audio: ' + (error instanceof Error ? error.message : String(error)));
+  //       }
+  //     }
+  //   };
+  
+  //   analyzeAudio();  // Call the async function inside useEffect
+  
+  //   return () => {
+  //     cleanup();
+  //   };
+  // }, [recordedBlob, cleanup]);
+
+  const stopRecordingUtils = useCallback(async () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop(); // This should trigger `onstop` and process the chunks.
-      setisRecording(false); // Make sure to update the recording state.
+      mediaRecorderRef.current.stop(); 
+      setisRecording(false); 
     }
   }, [isRecording]);  
 
@@ -237,6 +276,37 @@ export function useVideoRecorder(): UseVideoRecorderResult {
     });
   }, [recordedBlob]);
 
+  const downloadSpeechAnalysisUtils = useCallback(async () => {
+    if (!recordedBlob) return;
+
+    try {
+      const audioBuffer = await extractAudioFromBlob(recordedBlob);
+      const audioBlob = await convertToWAV(audioBuffer);
+
+      const formData = new FormData();
+      formData.append('file', new Blob([audioBlob], { type: 'audio/wav' }), 'recorded-audio.wav');
+
+      const response = await fetch('http://localhost:5000/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Audio analysis failed');
+      }
+
+      const data = await response.json();
+
+      console.log('Analysis Results:', data);
+
+      const pdfReportLink = `../../${data.pdf_report}`;
+      window.open(pdfReportLink, '_blank');
+
+    } catch (error) {
+      setError('Error processing audio: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  }, [recordedBlob]);
+
   return {
     videoRef,
     previewRefUtils,
@@ -250,5 +320,6 @@ export function useVideoRecorder(): UseVideoRecorderResult {
     togglePreviewUtils,
     downloadVideoUtils,
     downloadAudioUtils,
+    downloadSpeechAnalysisUtils,
   };
 }

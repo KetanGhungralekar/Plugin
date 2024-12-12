@@ -1,38 +1,34 @@
 import os
 import time
 from flask import Flask, request, jsonify
-import speech_recognition as sr
+import whisper  # Import whisper library
 import pronouncing
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import re
+from flask_cors import CORS
 
+# Initialize the Flask app
 app = Flask(__name__)
 
-# Function to transcribe speech to text
+CORS(app)
+
+# Initialize Whisper model
+model = whisper.load_model("base")  # You can choose different sizes like 'small', 'medium', 'large'
+
+# Function to transcribe speech to text using Whisper
 def transcribe_audio(file_path):
-    recognizer = sr.Recognizer()
-    audio_file = sr.AudioFile(file_path)
-    with audio_file as source:
-        audio = recognizer.record(source)
-    try:
-        text = recognizer.recognize_google(audio)
-        return text
-    except sr.UnknownValueError:
-        return None
-    except sr.RequestError:
-        return None
+    result = model.transcribe(file_path)
+    return result['text']
 
 # Simple grammar analysis (alternative to LanguageTool)
 def analyze_grammar(text):
-    # Basic checks for common grammar errors
     errors = []
     if text[0].islower():
         errors.append({"message": "Sentence should start with a capital letter.", "rule": "CAPITALIZATION_RULE"})
     if not text.endswith(('.', '!', '?')):
         errors.append({"message": "Sentence should end with a period, exclamation, or question mark.", "rule": "PUNCTUATION_RULE"})
 
-    # Example rule: Detect repeated words
     repeated_words = re.findall(r'\b(\w+)\s+\1\b', text, flags=re.IGNORECASE)
     for word in repeated_words:
         errors.append({"message": f"Repeated word: '{word}'", "rule": "REPEATED_WORD_RULE"})
@@ -106,7 +102,7 @@ def analyze_audio():
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     file.save(file_path)
 
-    # Transcribe audio to text
+    # Transcribe audio to text using Whisper
     text = transcribe_audio(file_path)
     if not text:
         return jsonify({'error': 'Could not transcribe audio'}), 500
