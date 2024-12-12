@@ -2,7 +2,7 @@
 
 ## Frontend Deployed on Vercel
 
-Explore the deployed frontend application live on [Vercel](https://plugin-4xk4.vercel.app/).
+Explore the deployed frontend application live on [Vercel](https://plugin-wr6n.vercel.app/).
 
 
 ## Description
