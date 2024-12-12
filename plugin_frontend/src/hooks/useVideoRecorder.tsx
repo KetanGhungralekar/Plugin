@@ -41,15 +41,15 @@ export function useVideoRecorder(): UseVideoRecorderResult {
       reader.onerror = (error) => reject(error);
       reader.readAsDataURL(blob);
     });
-  };  
-  
+  };
+
 
   const convertDecodedToBase64 = (decodedData: string, mimeType: string): string => {
     // Encode the decoded binary string back to Base64
     const base64Encoded = btoa(decodedData);
 
     const base64String = `data:${mimeType};base64,${base64Encoded}`;
-  
+
     return base64String;
   };
 
@@ -80,53 +80,53 @@ export function useVideoRecorder(): UseVideoRecorderResult {
       setError(null);
       setRecordedBlob(null);
       setRecordedChunksUtils([]);
-  
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
       });
-  
+
       streamRef.current = stream;
-  
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-  
+
       const mimeTypes = [
         'video/webm;codecs=vp8,opus',
         'video/webm;codecs=h264,opus',
         'video/webm',
       ];
-  
+
       const selectedMimeType = mimeTypes.find((type) => MediaRecorder.isTypeSupported(type));
-  
+
       if (!selectedMimeType) {
         throw new Error('No supported MIME type found for recording');
       }
-  
+
       const options: MediaRecorderOptions = {
         mimeType: selectedMimeType,
         audioBitsPerSecond: 128000,
         videoBitsPerSecond: 2500000,
       };
-  
+
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
-  
+
       const chunks: Blob[] = [];
       let recordedSize = 0;
-  
+
       mediaRecorder.ondataavailable = (e: BlobEvent) => {
         if (e.data && e.data.size > 0) {
           chunks.push(e.data);
           recordedSize += e.data.size; // Keep track of the total size of the chunks
         }
       };
-  
+
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: selectedMimeType });
         const finalSize = blob.size;
-  
+
         if (recordedSize === finalSize) {
           setRecordedChunksUtils(chunks);
           setRecordedBlob(blob);
@@ -137,8 +137,8 @@ export function useVideoRecorder(): UseVideoRecorderResult {
           await uploadVideo({
             title: "Video Recording",
             description: "This is a video recording",
-            role: "ROLE_USER", 
-            uploadedBy: "user123", 
+            role: "ROLE_USER",
+            uploadedBy: "user123",
             videoFile: videoFile,
           });
 
@@ -155,18 +155,18 @@ export function useVideoRecorder(): UseVideoRecorderResult {
         } else {
           setError('Recorded chunks size does not match final blob size');
         }
-  
+
         cleanup();
       };
-  
+
       mediaRecorder.onerror = (event: Event) => {
         const errorMessage = 'Recording failed: ' + (event instanceof ErrorEvent ? event.message : 'Unknown error');
         setError(errorMessage);
         cleanup();
       };
 
-      mediaRecorder.start(100); 
-  
+      mediaRecorder.start(100);
+
       setisRecording(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -181,35 +181,35 @@ export function useVideoRecorder(): UseVideoRecorderResult {
   //       try {
   //         const audioBuffer = await extractAudioFromBlob(recordedBlob);
   //         const audioBlob = await convertToWAV(audioBuffer);
-  
+
   //         const formData = new FormData();
   //         formData.append('file', new Blob([audioBlob], { type: 'audio/wav' }), 'recorded-audio.wav');
-  
+
   //         console.log("YOU ARE HERE");
   //         const response = await fetch('http://localhost:5000/analyze', {
   //           method: 'POST',
   //           body: formData,
   //         });
-  
+
   //         if (!response.ok) {
   //           throw new Error('Audio analysis failed');
   //         }
-  
+
   //         const data = await response.json();
-  
+
   //         console.log('Analysis Results:', data);
-  
+
   //         const pdfReportLink = `../../${data.pdf_report}`;
   //         window.open(pdfReportLink, '_blank');
-          
+
   //       } catch (error) {
   //         setError('Error processing audio: ' + (error instanceof Error ? error.message : String(error)));
   //       }
   //     }
   //   };
-  
+
   //   analyzeAudio();  // Call the async function inside useEffect
-  
+
   //   return () => {
   //     cleanup();
   //   };
@@ -217,10 +217,10 @@ export function useVideoRecorder(): UseVideoRecorderResult {
 
   const stopRecordingUtils = useCallback(async () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop(); 
-      setisRecording(false); 
+      mediaRecorderRef.current.stop();
+      setisRecording(false);
     }
-  }, [isRecording]);  
+  }, [isRecording]);
 
   const togglePreviewUtils = useCallback(() => {
     if (previewRefUtils.current) {
@@ -275,7 +275,6 @@ export function useVideoRecorder(): UseVideoRecorderResult {
       reader.readAsDataURL(recordedBlob);
     });
   }, [recordedBlob]);
-
   const downloadSpeechAnalysisUtils = useCallback(async () => {
     if (!recordedBlob) return;
 
@@ -299,13 +298,12 @@ export function useVideoRecorder(): UseVideoRecorderResult {
 
       console.log('Analysis Results:', data);
 
-      const pdfReportLink = `../../${data.pdf_report}`;
-      window.open(pdfReportLink, '_blank');
-
     } catch (error) {
       setError('Error processing audio: ' + (error instanceof Error ? error.message : String(error)));
     }
   }, [recordedBlob]);
+
+
 
   return {
     videoRef,

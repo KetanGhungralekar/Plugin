@@ -1,6 +1,6 @@
 import os
 import time
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import whisper  # Import whisper library
 import pronouncing
 from reportlab.lib.pagesizes import letter
@@ -13,11 +13,14 @@ app = Flask(__name__)
 
 CORS(app)
 
+# Path to store generated PDFs
+PDF_STORAGE_PATH = '../plugin_frontend/generated_pdfs'
+
 # Initialize Whisper model
 model = whisper.load_model("base")  # You can choose different sizes like 'small', 'medium', 'large'
 
 # Function to transcribe speech to text using Whisper
-def transcribe_audio(file_path):
+def transcribe_audio(file_path): 
     result = model.transcribe(file_path)
     return result['text']
 
@@ -35,22 +38,24 @@ def analyze_grammar(text):
 
     return errors
 
+# Function to perform pronunciation analysis (e.g., using the Pronouncing library)
+def analyze_pronunciation(text):
+    pronunciation_issues = []
+    words = text.split()
+    for word in words:
+        if pronouncing.phones_for_word(word):
+            pronunciation_issues.append(f"Good pronunciation: {word}")
+        else:
+            pronunciation_issues.append(f"Pronunciation issue: {word}")
+    return pronunciation_issues
+
 # Function to analyze speaking pace (words per minute)
 def analyze_speaking_pace(text):
-    word_count = len(text.split())
-    time_taken = len(text.split()) / 2  # average speaking pace: 2 words per second
-    pace = word_count / time_taken * 60  # words per minute
-    return pace
-
-# Function to analyze pronunciation using phonetic matching (simple analysis)
-def analyze_pronunciation(text):
     words = text.split()
-    pronunciation_issues = []
-    for word in words:
-        phonemes = pronouncing.phones_for_word(word)
-        if not phonemes:
-            pronunciation_issues.append(f'No phonetic match for "{word}"')
-    return pronunciation_issues
+    num_words = len(words)
+    # Assuming the average speaking time for 1 word is ~0.3 seconds
+    speaking_pace = num_words / 0.3  # words per minute
+    return speaking_pace
 
 # Function to generate a PDF report
 def generate_pdf_report(text, grammar_analysis, pronunciation_analysis, speaking_pace, filename="report.pdf"):
@@ -85,8 +90,12 @@ def generate_pdf_report(text, grammar_analysis, pronunciation_analysis, speaking
     c.drawString(100, y_position, f"Speaking Pace: {speaking_pace:.2f} words per minute")
     y_position -= 20
 
-    # Save the PDF
+    # Save the PDF to storage
+    os.makedirs(PDF_STORAGE_PATH, exist_ok=True)
     c.save()
+
+    # Move the generated report to the storage folder
+    os.rename(filename, os.path.join(PDF_STORAGE_PATH, filename))
 
 @app.route('/analyze', methods=['POST'])
 def analyze_audio():
@@ -124,6 +133,25 @@ def analyze_audio():
         'speaking_pace': speaking_pace,
         'pdf_report': pdf_filename
     })
+
+def download_pdf(filename):
+    try:
+        # Define the file path
+        pdf_path = os.path.join(PDF_STORAGE_PATH, filename)
+        
+        # Check if the file exists
+        if not os.path.exists(pdf_path):
+            return jsonify({'error': 'File not found'}), 404
+        
+
+        # Return the file with proper headers
+        return send_from_directory(
+            PDF_STORAGE_PATH, 
+            filename
+        )
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
