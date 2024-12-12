@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FaLock } from 'react-icons/fa';
 import { RiArrowRightSLine } from 'react-icons/ri';
 // import { Poppins } from 'next/font/google';
+import { useAuth } from '../context';
+import { useNavigate } from 'react-router-dom';
 
 // const poppins = Poppins({
 //   weight: ['400', '500', '600', '700'],
@@ -12,15 +14,29 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const { signin, signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (isSigningIn) {
-      // Handle sign in logic here
+      try {
+        signup(username, username, password, 'ROLE_USER');
+        console.log('Signing up with:', username, password);
+        navigate('/record-video');
+      } catch (error) {
+        console.error('Signup error:', error);
+      }
       console.log('Signing in with:', username, password);
     } else {
-      // Handle login logic here
+      try {
+        signin(username, password);
+        navigate('/record-video');
+      }
+      catch (error) {
+        console.error('Signin error:', error);
+      }
       console.log('Logging in with:', username, password);
     }
   };
