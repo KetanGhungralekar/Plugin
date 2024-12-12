@@ -9,6 +9,7 @@ import { Button } from './ui/Button';
 export function VideoRecorder() {
   // const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [totalTranscript, setTotalTranscript] = useState('');
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(indianLanguages[0]);
   // const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,6 +70,7 @@ export function VideoRecorder() {
         }
 
         setTranscript(finalTranscript + interimTranscript);
+        setTotalTranscript((prevTranscript) => prevTranscript + finalTranscript);
       };
 
       recognition.onerror = (event) => {
@@ -133,8 +135,25 @@ export function VideoRecorder() {
     }
   
     changeIsRecording(false);
+
+    const grammarCheckedTranscript = await checkGrammar(totalTranscript);
+    setTranscript(grammarCheckedTranscript);
   };
   
+  const checkGrammar = async (text : string) => {
+    try {
+      const response = await fetch('http://localhost:5000/grammar-check?sentence=' + encodeURIComponent(text));
+      if (!response.ok) {
+        throw new Error('Grammar check API failed');
+      }
+      const data = await response.json();
+      console.log(data.question);
+      return data.question;
+    } catch (error) {
+      console.error('Error checking grammar:', error);
+      return text;  
+    }
+  };
   
   const handleLanguageChange = (language: Language) => {
     setSelectedLanguage(language);
@@ -227,6 +246,10 @@ export function VideoRecorder() {
             selectedLanguage={selectedLanguage}
           />
         </div>
+      </div>
+
+      <div>
+        <p className="text-gray-600">{totalTranscript}</p>
       </div>
     </div>
   );

@@ -110,7 +110,7 @@ public class VideoController {
             for (Video video : videos) {
                 VideoRequest videoRequest = convertVideoToVideoRequest(video);
 
-                String videoUrl = video.getVideoUrl();  
+                String videoUrl = video.getVideoUrl();
                 videoRequest.setVideoFilePath(videoUrl);  // Now pointing to the Cloudinary URL
 
                 // Add the VideoRequest to the list
