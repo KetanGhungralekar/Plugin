@@ -1,5 +1,8 @@
 # Communication Assessment Platform
 
+## Frontend is Deployed on Vercel
+``` https://plugin-4xk4.vercel.app/```
+
 ## Description
 The Communication Assessment Platform integrates video functionality, speech analysis, and assessment features. It offers real-time video recording, storage, and playback. The system provides real-time speech transcription with over 70% accuracy and includes a scoring mechanism and personalized feedback. It also features body language analysis, multilingual support, and a tailored improvement plan.
 
